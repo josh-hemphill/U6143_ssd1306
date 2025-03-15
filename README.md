@@ -11,16 +11,15 @@ sudo raspi-config
 
 Choose `Interface Options` | `I2C`, then answer `Yes` to whether you would like the ARM I2C interface to be enabled.
 
-Install Git and library dependencies
-
-```bash
-sudo apt update
-sudo apt install git wiringpi
-```
+(On a freshly flashed Rasbian OS SD card, you can edit the `config.txt` file and uncomment `dtparam=i2c_arm=on` to enable I2C instead)
 
 ## Clone U6143_ssd1306 library 
 ```bash
-git clone https://github.com/UCTRONICS/U6143_ssd1306.git
+git clone https://github.com/darkgrue/U6143_ssd1306.git
+```
+Or if you don't have git installed (it's not by default)
+```bash
+curl -sSL https://github.com/darkgrue/U6143_ssd1306/archive/refs/heads/master.zip -o temp.zip && unzip temp.zip && rm temp.zip
 ```
 
 ## Compile 
