@@ -22,12 +22,6 @@ jobs:
           # Also copy binary to root for raw artifact
           cp C/display ./display-binary
 
-      - name: Upload binary artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: display-binary
-          path: display-binary
-
       - name: Add systemd service
         run: |
           mkdir -p display-u6143/lib/systemd/system
