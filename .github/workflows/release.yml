@@ -14,6 +14,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # Get version from git tag, removing 'v' prefix, default to 1.0.0 for manual runs
+      - name: Set Version
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            echo "PKG_VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
+          else
+            echo "PKG_VERSION=1.0.0" >> $GITHUB_ENV
+          fi
+
       - name: Build binary
         run: |
           cd C && make clean && make && cd ..
@@ -31,7 +40,7 @@ jobs:
         run: |
           mkdir -p display-u6143/DEBIAN
           echo "Package: display-u6143" > display-u6143/DEBIAN/control
-          echo "Version: 1.0" >> display-u6143/DEBIAN/control
+          echo "Version: ${{ env.PKG_VERSION }}" >> display-u6143/DEBIAN/control
           echo "Section: utils" >> display-u6143/DEBIAN/control
           echo "Priority: optional" >> display-u6143/DEBIAN/control
           echo "Architecture: arm64" >> display-u6143/DEBIAN/control
