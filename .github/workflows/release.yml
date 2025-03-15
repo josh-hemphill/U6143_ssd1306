@@ -1,0 +1,61 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04-arm
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build binary
+        run: |
+          cd C && make clean && make && cd ..
+          mkdir -p display-u6143/usr/local/bin
+          cp C/display display-u6143/usr/local/bin/
+          # Also copy binary to root for raw artifact
+          cp C/display ./display-binary
+
+      - name: Upload binary artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: display-binary
+          path: display-binary
+
+      - name: Add systemd service
+        run: |
+          mkdir -p display-u6143/lib/systemd/system
+          cp contrib/U6143_ssd1306.service display-u6143/lib/systemd/system/display-u6143.service
+
+      - name: Create control file
+        run: |
+          mkdir -p display-u6143/DEBIAN
+          echo "Package: display-u6143" > display-u6143/DEBIAN/control
+          echo "Version: 1.0" >> display-u6143/DEBIAN/control
+          echo "Section: utils" >> display-u6143/DEBIAN/control
+          echo "Priority: optional" >> display-u6143/DEBIAN/control
+          echo "Architecture: arm64" >> display-u6143/DEBIAN/control
+          echo "Maintainer: Josh H <example@example.com>" >> display-u6143/DEBIAN/control
+          echo "Description: Pi Rack (U6143) OLED display service" >> display-u6143/DEBIAN/control
+
+      - name: Build .deb package
+        run: dpkg-deb --build display-u6143
+
+      - name: Group Artifacts
+        run: |
+          mkdir -p build/display-u6143
+          mv display-u6143.deb build/display-u6143/
+          mv display-binary build/display-u6143/
+
+      - name: Release
+        uses: fnkr/github-action-ghr@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GHR_COMPRESS: xz
+          GHR_PATH: build/display-u6143
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
