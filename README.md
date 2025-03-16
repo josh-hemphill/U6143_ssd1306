@@ -23,11 +23,22 @@ wget https://github.com/josh-hemphill/U6143_ssd1306/releases/download/latest/dis
 sudo dpkg -i display-u6143.deb
 ```
 
+You can optionally set the DISPLAY_CYCLE_TIME_S environment variable to control the cycle time of the display
+Either in the global env locations or in the service file: /lib/systemd/system/display-u6143.service
+
+```ini
+[Service]
+Environment="DISPLAY_CYCLE_TIME_S=5"
+```
+
 Or if you just want to run the binary yourself:
 
 ```bash
-wget https://github.com/josh-hemphill/U6143_ssd1306/releases/download/latest/display`
-sudo dpkg -i display-u6143.deb
+wget https://github.com/josh-hemphill/U6143_ssd1306/releases/download/latest/display-binary`
+chmod +x display-binary
+# You can optionally set the DISPLAY_CYCLE_TIME_S environment variable
+# to control the cycle time of the display
+sudo DISPLAY_CYCLE_TIME_S=5 ./display-binary
 ```
 
 ## Clone U6143_ssd1306 library
