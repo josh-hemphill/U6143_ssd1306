@@ -56,14 +56,16 @@ jobs:
         run: |
           mkdir -p display-u6143/DEBIAN/postinst.d
           echo "#!/bin/bash" > display-u6143/DEBIAN/postinst.d/display-u6143
-          echo "systemctl --now enable display-u6143.service" >> display-u6143/DEBIAN/postinst.d/display-u6143
+          echo "systemctl enable display-u6143.service" >> display-u6143/DEBIAN/postinst.d/display-u6143
+          echo "systemctl start display-u6143.service" >> display-u6143/DEBIAN/postinst.d/display-u6143
           chmod +x display-u6143/DEBIAN/postinst.d/display-u6143
 
       - name: Create postrm script
         run: |
           mkdir -p display-u6143/DEBIAN/postrm.d
           echo "#!/bin/bash" > display-u6143/DEBIAN/postrm.d/display-u6143
-          echo "systemctl --now disable display-u6143.service" >> display-u6143/DEBIAN/postrm.d/display-u6143
+          echo "systemctl stop display-u6143.service" >> display-u6143/DEBIAN/postrm.d/display-u6143
+          echo "systemctl disable display-u6143.service" >> display-u6143/DEBIAN/postrm.d/display-u6143
           chmod +x display-u6143/DEBIAN/postrm.d/display-u6143
 
       - name: Build .deb package
