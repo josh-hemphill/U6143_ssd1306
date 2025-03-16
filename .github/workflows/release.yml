@@ -63,7 +63,7 @@ jobs:
         run: |
           mkdir -p display-u6143/DEBIAN/postrm.d
           echo "#!/bin/bash" > display-u6143/DEBIAN/postrm.d/display-u6143
-          echo "systemctl disable display-u6143.service" >> display-u6143/DEBIAN/postrm.d/display-u6143
+          echo "systemctl --now disable display-u6143.service" >> display-u6143/DEBIAN/postrm.d/display-u6143
           chmod +x display-u6143/DEBIAN/postrm.d/display-u6143
 
       - name: Build .deb package
