@@ -43,6 +43,20 @@ jobs:
           echo "Maintainer: Josh H <example@example.com>" >> display-u6143/DEBIAN/control
           echo "Description: Pi Rack (U6143) OLED display service" >> display-u6143/DEBIAN/control
 
+      - name: Create postinst script
+        run: |
+          mkdir -p display-u6143/DEBIAN/postinst.d
+          echo "#!/bin/bash" > display-u6143/DEBIAN/postinst.d/display-u6143
+          echo "systemctl --now enable display-u6143.service" >> display-u6143/DEBIAN/postinst.d/display-u6143
+          chmod +x display-u6143/DEBIAN/postinst.d/display-u6143
+
+      - name: Create postrm script
+        run: |
+          mkdir -p display-u6143/DEBIAN/postrm.d
+          echo "#!/bin/bash" > display-u6143/DEBIAN/postrm.d/display-u6143
+          echo "systemctl disable display-u6143.service" >> display-u6143/DEBIAN/postrm.d/display-u6143
+          chmod +x display-u6143/DEBIAN/postrm.d/display-u6143
+
       - name: Build .deb package
         run: dpkg-deb --build display-u6143
 
