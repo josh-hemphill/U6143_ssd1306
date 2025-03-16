@@ -3,6 +3,7 @@
 Display driver for UCTRONICS Ultimate Rack with PoE Functionality for Raspberry Pi 4 (SKU U6145)
 
 ## I2C
+
 Begin by enabling the I2C interface:
 
 ```bash
@@ -13,29 +14,52 @@ Choose `Interface Options` | `I2C`, then answer `Yes` to whether you would like 
 
 (On a freshly flashed Rasbian OS SD card, you can edit the `config.txt` file and uncomment `dtparam=i2c_arm=on` to enable I2C instead)
 
-## Clone U6143_ssd1306 library 
+## GitHub releases available now with pre-built binary and installer
+
+You can now install by downloading the latest `.deb` installer and it will automatically enable and start the background service.
+
+```bash
+wget https://github.com/josh-hemphill/U6143_ssd1306/releases/download/latest/display-u6143.deb`
+sudo dpkg -i display-u6143.deb
+```
+
+Or if you just want to run the binary yourself:
+
+```bash
+wget https://github.com/josh-hemphill/U6143_ssd1306/releases/download/latest/display`
+sudo dpkg -i display-u6143.deb
+```
+
+## Clone U6143_ssd1306 library
+
 ```bash
 git clone https://github.com/darkgrue/U6143_ssd1306.git
 ```
+
 Or if you don't have git installed (it's not by default)
+
 ```bash
 curl -sSL https://github.com/darkgrue/U6143_ssd1306/archive/refs/heads/master.zip -o temp.zip && unzip temp.zip && rm temp.zip
 ```
 
-## Compile 
+## Compile
+
 ```bash
 cd U6143_ssd1306/C
 ```
+
 ```bash
 make clean && make 
 ```
 
-## Run 
-```
+## Run
+
+```bash
 sudo ./display
 ```
 
 ## Add automatic start script
+
 Copy the binary file to `/usr/local/bin/`:
 
 ```bash
@@ -43,7 +67,7 @@ sudo cp ./display /usr/local/bin/
 ```
 
 Choose one of the following configuration options (`systemd` **or** `rc.local`):
- 
+
 ```bash
 sudo cp ./contrib/U6143_ssd1306.service /etc/systemd/system/
 sudo systemctl daemon-reload
@@ -69,7 +93,8 @@ Reboot your system:
 sudo reboot now
 ```
 
-## For older 0.91 inch LCD without MCU 
+## For older 0.91 inch LCD without MCU
+
 For the older version LCD without MCU controller, you can use the Python demo.
 
 Install the dependent library files:
@@ -82,7 +107,7 @@ sudo pip3 install adafruit-circuitpython-ssd1306
 
 Test demo:
 
-```bash 
+```bash
 cd U6143_ssd1306/python 
 sudo python3 ssd1306_stats.py
 ```
