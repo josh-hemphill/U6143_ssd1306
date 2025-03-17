@@ -48,12 +48,9 @@ jobs:
 
       - name: Test environment
         run: |
-          echo "maintainer: '${GITHUB_ACTOR} <${GITHUB_ACTOR}@users.noreply.github.com>"
-          description: |
-            Pi Rack (U6143) OLED display service
-          vendor: "${GITHUB_REPOSITORY_OWNER}"
-          homepage: "${$GITHUB_SERVER_URL/$GITHUB_REPOSITORY}"'
-          
+          echo "maintainer: ${GITHUB_ACTOR} <${GITHUB_ACTOR}@users.noreply.github.com>"
+          echo "vendor: ${GITHUB_REPOSITORY_OWNER}"
+          echo "homepage: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}"
 
       - name: Create rpm package
         id: nfpm-rpm
