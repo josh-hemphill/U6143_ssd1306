@@ -46,6 +46,15 @@ jobs:
             echo "PKG_VERSION=1.0.0" >> $GITHUB_ENV
           fi
 
+      - name: Test environment
+        run: |
+          echo "maintainer: '${GITHUB_ACTOR} <${GITHUB_ACTOR}@users.noreply.github.com>"
+          description: |
+            Pi Rack (U6143) OLED display service
+          vendor: "${GITHUB_REPOSITORY_OWNER}"
+          homepage: "${$GITHUB_SERVER_URL/$GITHUB_REPOSITORY}"'
+          
+
       - name: Create rpm package
         id: nfpm-rpm
         uses: burningalchemist/action-gh-nfpm@v1
