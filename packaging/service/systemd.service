@@ -4,7 +4,7 @@ After=network.target
 
 [Service]
 Type=idle
-ExecStart=/usr/local/bin/display
+ExecStart=/usr/local/bin/display-u6143
 
 [Install]
 WantedBy=multi-user.target
