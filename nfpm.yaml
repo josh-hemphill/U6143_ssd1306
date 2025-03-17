@@ -18,6 +18,9 @@ license: "MIT"
 contents:
   - src: ./display-binary
     dst: /usr/local/bin/display-u6143
+    file_info:
+      mode: 0700
+
   - src: ./packaging/service/systemd.service
     dst: /etc/systemd/system/display-u6143.service
     packager: deb
@@ -27,6 +30,7 @@ contents:
   - src: ./packaging/service/openrc.service
     dst: /etc/init.d/display-u6143
     packager: apk
+
 overrides:
   rpm:
     scripts:
