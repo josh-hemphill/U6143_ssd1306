@@ -41,6 +41,86 @@ jobs:
           mkdir -p display-u6143/lib/systemd/system
           cp contrib/U6143_ssd1306.service display-u6143/lib/systemd/system/display-u6143.service
 
+      # Create Alpine package structure
+      - name: Setup Alpine package
+        run: |
+          mkdir -p alpine/display-u6143/usr/local/bin
+          mkdir -p alpine/display-u6143/etc/init.d
+          cp C/display alpine/display-u6143/usr/local/bin/
+          # Create OpenRC init script
+          cat > alpine/display-u6143/etc/init.d/display-u6143 << 'EOF'
+          #!/sbin/openrc-run
+          
+          name="display-u6143"
+          command="/usr/local/bin/display"
+          command_background="yes"
+          pidfile="/run/${RC_SVCNAME}.pid"
+          
+          depend() {
+              need net
+              after bootmisc
+          }
+          EOF
+          chmod +x alpine/display-u6143/etc/init.d/display-u6143
+
+      - name: Create APKBUILD
+        run: |
+          mkdir -p alpine
+          cat > alpine/APKBUILD << EOF
+          # Contributor: Josh H <example@example.com>
+          # Maintainer: Josh H <example@example.com>
+          pkgname=display-u6143
+          pkgver=\${{ env.PKG_VERSION }}
+          pkgrel=0
+          pkgdesc="Pi Rack (U6143) OLED display service"
+          url="https://github.com/yourusername/U6143_ssd1306"
+          arch="aarch64"
+          license="MIT"
+          depends=""
+          install="\$pkgname.post-install \$pkgname.post-deinstall"
+          source=""
+          options="!check"
+          
+          package() {
+              cp -r \$srcdir/display-u6143/* \$pkgdir/
+          }
+          EOF
+          
+          # Create post-install script
+          cat > alpine/display-u6143.post-install << 'EOF'
+          #!/bin/sh
+          rc-update add display-u6143 default
+          rc-service display-u6143 start
+          EOF
+          
+          # Create post-deinstall script
+          cat > alpine/display-u6143.post-deinstall << 'EOF'
+          #!/bin/sh
+          rc-service display-u6143 stop
+          rc-update del display-u6143 default
+          EOF
+
+      - name: Install Alpine build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y alpine-sdk
+
+      - name: Build APK package
+        run: |
+          cd alpine
+          abuild-keygen -a -i -n
+          abuild -r
+          mkdir -p packages/aarch64
+          mv /home/runner/packages/*/aarch64/display-u6143-${{ env.PKG_VERSION }}-r0.apk packages/aarch64/
+          cd ..
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: display-u6143-apk
+          path: alpine/packages/aarch64/display-u6143-${{ env.PKG_VERSION }}-r0.apk
+
+      # Continue with Debian package creation
       - name: Create control file
         run: |
           mkdir -p display-u6143/DEBIAN
@@ -95,6 +175,7 @@ jobs:
           body: |
             This release includes:
             - `.deb` package for ARM64
+            - `.apk` package for Alpine Linux (aarch64)
             - Raw binary for ARM64
           draft: false
           prerelease: false
@@ -102,3 +183,4 @@ jobs:
           files: >
             display-u6143.deb
             display-binary
+            display-u6143.apk
