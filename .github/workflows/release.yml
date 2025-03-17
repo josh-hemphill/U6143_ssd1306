@@ -57,21 +57,6 @@ jobs:
           ./nfpm pkg --packager=deb --target=display-u6143.deb
           ./nfpm pkg --packager=apk --target=display-u6143.apk
 
-
-      - name: Create deb package
-        id: nfpm-deb
-        uses: burningalchemist/action-gh-nfpm@v1
-        with:
-          packager: deb
-          target: display-u6143.deb
-
-      - name: Create apk package
-        id: nfpm-apk
-        uses: burningalchemist/action-gh-nfpm@v1
-        with:
-          packager: apk
-          target: display-u6143.apk
-
       - name: Create GitHub Release
         uses: meeDamian/github-release@2.0
         with:
