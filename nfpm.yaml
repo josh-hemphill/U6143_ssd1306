@@ -19,8 +19,11 @@ contents:
   - src: ./display-binary
     dst: /usr/local/bin/display-u6143
   - src: ./packaging/service/systemd.service
-    dst: /lib/systemd/system/display-u6143.service
-    packager: deb|rpm
+    dst: /etc/systemd/system/display-u6143.service
+    packager: deb
+  - src: ./packaging/service/systemd.service
+    dst: /etc/systemd/system/display-u6143.service
+    packager: rpm
   - src: ./packaging/service/openrc.service
     dst: /etc/init.d/display-u6143
     packager: apk
