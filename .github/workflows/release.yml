@@ -14,6 +14,29 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Build binary
+        run: |
+          cd C && make clean && make && cd ..
+
+      - name: Upload binary artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: display-binary
+          path: display-binary
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: display-binary
+
       - name: Set Version
         run: |
           if [[ "${{ github.ref }}" == refs/tags/* ]]; then
@@ -22,150 +45,26 @@ jobs:
             echo "PKG_VERSION=1.0.0" >> $GITHUB_ENV
           fi
 
-      - name: Build binary
-        run: |
-          cd C && make clean && make && cd ..
-          mkdir -p display-u6143/usr/local/bin
-          cp C/display display-u6143/usr/local/bin/
-          # Also copy binary to root for raw artifact
-          cp C/display ./display-binary
-
-      - name: Upload binary artifact
-        uses: actions/upload-artifact@v4
+      - name: Create rpm package
+        id: nfpm-rpm
+        uses: burningalchemist/action-gh-nfpm@v1
         with:
-          name: display-binary
-          path: display-binary
+          packager: rpm
+          target: display-u6143.rpm
 
-      - name: Add systemd service
-        run: |
-          mkdir -p display-u6143/lib/systemd/system
-          cp contrib/U6143_ssd1306.service display-u6143/lib/systemd/system/display-u6143.service
-
-      # Create Alpine package structure
-      - name: Setup Alpine package
-        run: |
-          mkdir -p alpine/display-u6143/usr/local/bin
-          mkdir -p alpine/display-u6143/etc/init.d
-          cp C/display alpine/display-u6143/usr/local/bin/
-          # Create OpenRC init script
-          cat > alpine/display-u6143/etc/init.d/display-u6143 << 'EOF'
-          #!/sbin/openrc-run
-          
-          name="display-u6143"
-          command="/usr/local/bin/display"
-          command_background="yes"
-          pidfile="/run/${RC_SVCNAME}.pid"
-          
-          depend() {
-              need net
-              after bootmisc
-          }
-          EOF
-          chmod +x alpine/display-u6143/etc/init.d/display-u6143
-
-      - name: Create APKBUILD
-        run: |
-          mkdir -p alpine
-          cat > alpine/APKBUILD << EOF
-          # Contributor: Josh H <example@example.com>
-          # Maintainer: Josh H <example@example.com>
-          pkgname=display-u6143
-          pkgver=\${{ env.PKG_VERSION }}
-          pkgrel=0
-          pkgdesc="Pi Rack (U6143) OLED display service"
-          url="https://github.com/yourusername/U6143_ssd1306"
-          arch="aarch64"
-          license="MIT"
-          depends=""
-          install="\$pkgname.post-install \$pkgname.post-deinstall"
-          source=""
-          options="!check"
-          
-          package() {
-              cp -r \$srcdir/display-u6143/* \$pkgdir/
-          }
-          EOF
-          
-          # Create post-install script
-          cat > alpine/display-u6143.post-install << 'EOF'
-          #!/bin/sh
-          rc-update add display-u6143 default
-          rc-service display-u6143 start
-          EOF
-          
-          # Create post-deinstall script
-          cat > alpine/display-u6143.post-deinstall << 'EOF'
-          #!/bin/sh
-          rc-service display-u6143 stop
-          rc-update del display-u6143 default
-          EOF
-
-      - name: Install Alpine build dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y alpine-sdk
-
-      - name: Build APK package
-        run: |
-          cd alpine
-          abuild-keygen -a -i -n
-          abuild -r
-          mkdir -p packages/aarch64
-          mv /home/runner/packages/*/aarch64/display-u6143-${{ env.PKG_VERSION }}-r0.apk packages/aarch64/
-          cd ..
-
-      - name: Upload APK artifact
-        uses: actions/upload-artifact@v4
+      - name: Create deb package
+        id: nfpm-deb
+        uses: burningalchemist/action-gh-nfpm@v1
         with:
-          name: display-u6143-apk
-          path: alpine/packages/aarch64/display-u6143-${{ env.PKG_VERSION }}-r0.apk
+          packager: deb
+          target: display-u6143.deb
 
-      # Continue with Debian package creation
-      - name: Create control file
-        run: |
-          mkdir -p display-u6143/DEBIAN
-          echo "Package: display-u6143" > display-u6143/DEBIAN/control
-          echo "Version: ${{ env.PKG_VERSION }}" >> display-u6143/DEBIAN/control
-          echo "Section: utils" >> display-u6143/DEBIAN/control
-          echo "Priority: optional" >> display-u6143/DEBIAN/control
-          echo "Architecture: arm64" >> display-u6143/DEBIAN/control
-          echo "Maintainer: Josh H <example@example.com>" >> display-u6143/DEBIAN/control
-          echo "Description: Pi Rack (U6143) OLED display service" >> display-u6143/DEBIAN/control
-
-      - name: Create postinst script
-        run: |
-          mkdir -p display-u6143/DEBIAN/postinst.d
-          echo "#!/bin/bash" > display-u6143/DEBIAN/postinst.d/display-u6143
-          echo "systemctl enable display-u6143.service" >> display-u6143/DEBIAN/postinst.d/display-u6143
-          echo "systemctl start display-u6143.service" >> display-u6143/DEBIAN/postinst.d/display-u6143
-          chmod +x display-u6143/DEBIAN/postinst.d/display-u6143
-
-      - name: Create postrm script
-        run: |
-          mkdir -p display-u6143/DEBIAN/postrm.d
-          echo "#!/bin/bash" > display-u6143/DEBIAN/postrm.d/display-u6143
-          echo "systemctl stop display-u6143.service" >> display-u6143/DEBIAN/postrm.d/display-u6143
-          echo "systemctl disable display-u6143.service" >> display-u6143/DEBIAN/postrm.d/display-u6143
-          chmod +x display-u6143/DEBIAN/postrm.d/display-u6143
-
-      - name: Build .deb package
-        run: dpkg-deb --build display-u6143
-
-      - name: Upload release artifact
-        uses: actions/upload-artifact@v4
+      - name: Create apk package
+        id: nfpm-apk
+        uses: burningalchemist/action-gh-nfpm@v1
         with:
-          name: display-u6143
-          path: display-u6143.deb
-
-  release:
-    needs: build
-    runs-on: ubuntu-22.04
-
-    steps:
-      - name: Download artifacts
-        uses: actions/download-artifact@v4
-        with:
-          merge-multiple: true
+          packager: apk
+          target: display-u6143.apk
 
       - name: Create GitHub Release
         uses: meeDamian/github-release@2.0
@@ -175,6 +74,7 @@ jobs:
           body: |
             This release includes:
             - `.deb` package for ARM64
+            - `.rpm` package for ARM64
             - `.apk` package for Alpine Linux (aarch64)
             - Raw binary for ARM64
           draft: false
@@ -182,5 +82,6 @@ jobs:
           gzip: folders
           files: >
             display-u6143.deb
-            display-binary
+            display-u6143.rpm
             display-u6143.apk
+            display-binary

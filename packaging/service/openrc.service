@@ -1,0 +1,11 @@
+#!/sbin/openrc-run
+
+name="display-u6143"
+command="/usr/local/bin/display"
+command_background="yes"
+pidfile="/run/${RC_SVCNAME}.pid"
+
+depend() {
+	need net
+	after bootmisc
+}

@@ -1,0 +1,39 @@
+# yaml-language-server: $schema=https://nfpm.goreleaser.com/static/schema.json
+
+name: "display-u6143"
+arch: "arm64"
+platform: "linux"
+version: "${PKG_VERSION}"
+section: "default"
+replaces:
+  - display-u6143
+provides:
+  - display-u6143
+maintainer: "${GITHUB_ACTOR} <${GITHUB_ACTOR}@users.noreply.github.com>"
+description: |
+  Pi Rack (U6143) OLED display service
+vendor: "${GITHUB_REPOSITORY_OWNER}"
+homepage: "${$GITHUB_SERVER_URL/$GITHUB_REPOSITORY}"
+license: "MIT"
+contents:
+  - src: ./display-binary
+    dst: /usr/local/bin/display-u6143
+  - src: ./packaging/service/systemd.service
+    dst: /lib/systemd/system/display-u6143.service
+    packager: deb|rpm
+  - src: ./packaging/service/openrc.service
+    dst: /etc/init.d/display-u6143
+    packager: apk
+overrides:
+  rpm:
+    scripts:
+      preinstall: ./packaging/pre-install.sh
+      postremove: ./packaging/post-remove.sh
+  deb:
+    scripts:
+      postinstall: ./packaging/post-install.sh
+      preremove: ./packaging/pre-remove.sh
+  apk:
+    scripts:
+      postinstall: ./packaging/apk/post-install.sh
+      preremove: ./packaging/apk/pre-remove.sh
