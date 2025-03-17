@@ -28,7 +28,7 @@ overrides:
   rpm:
     scripts:
       postinstall: ./packaging/post-install.sh
-      postremove: ./packaging/post-remove.sh
+      preremove: ./packaging/pre-remove.sh
   deb:
     scripts:
       postinstall: ./packaging/post-install.sh
